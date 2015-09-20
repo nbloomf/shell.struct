@@ -2,15 +2,11 @@ module Main where
 
 import Data.List (lines, unlines, (\\))
 
-import qualified System.IO.Strict as S (readFile, getContents)
+import qualified System.IO.Strict as S
+  ( readFile, getContents )
 import System.IO (hPutStrLn, stderr)
-
 import System.Exit (exitSuccess, exitFailure)
-
-import System.Environment
-  ( getArgs
-  )
-
+import System.Environment (getArgs)
 import System.Directory
   ( getHomeDirectory
   , createDirectoryIfMissing
@@ -46,6 +42,19 @@ main = do
     _        -> showUsageAndQuit
 
   exitSuccess
+
+
+strictFileMap :: FilePath -> (String -> Maybe (a, String)) -> String -> IO a
+strictFileMap path f msg = do
+  x <- S.readFile path
+  let y = f x
+  case y of
+    Just (a,z) -> do
+      writeFile path z
+      return a
+    Nothing -> do
+      hPutStrLn stderr msg
+      exitFailure
 
 
 checkFile :: FilePath -> IO ()
@@ -119,6 +128,8 @@ printStacksAndQuit dir = do
   exitSuccess
 
 
+
+{- stack data -}
 data Stack
   = Stack [String]
   deriving (Eq, Show)
@@ -131,7 +142,7 @@ writeStack (Stack xs) = unlines xs
 
 
 
-{- Stack operations -}
+{- stack operations -}
 push :: String -> Stack -> Stack
 push x (Stack xs) = Stack (x:xs)
 
@@ -150,7 +161,7 @@ peek st = do
 
 
 
-{- String Conversions -}
+{- string conversions -}
 encode :: String -> String
 encode = concatMap encodeChar
 
@@ -167,4 +178,3 @@ decode (a:b:cs)
   | a == '\\' && b == '\\' = '\\' : decode cs
   | a == '\\' && b == 'n'  = '\n' : decode cs
   | otherwise              = a    : decode (b:cs)
-
