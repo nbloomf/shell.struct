@@ -34,18 +34,20 @@ main = do
     ["show"] -> printStacksAndQuit dataDir
 
     {- default stack -}
-    ("push":xs) -> stackPush defaultStack xs
-    ["pop"]     -> stackPop  defaultStack
-    ["peek"]    -> stackPeek defaultStack
+    ("push":xs) -> stackPush  defaultStack xs
+    ["pop"]     -> stackPop   defaultStack
+    ["peek"]    -> stackPeek  defaultStack
+    ["print"]   -> stackPrint defaultStack
 
     {- named stack -}
     (name:xs) -> do
       let namedStack = dataDir ++ "/" ++ name
       checkFile namedStack
       case xs of
-        ("push":ys) -> stackPush namedStack ys
-        ["pop"]     -> stackPop  namedStack
-        ["peek"]    -> stackPeek namedStack
+        ("push":ys) -> stackPush  namedStack ys
+        ["pop"]     -> stackPop   namedStack
+        ["peek"]    -> stackPeek  namedStack
+        ["print"]   -> stackPrint namedStack
         _           -> showUsageAndQuit
 
     {- otherwise -}
@@ -78,7 +80,10 @@ stackPeek path = do
   putStrLn $ decode x
 
 stackPrint :: FilePath -> IO ()
-stackPrint path = undefined
+stackPrint path = do
+  let foo = fmap (mapSnd writeStack) . printS . readStack
+  xs <- strictFileMap path foo "Cannot Print!"
+  putStr $ unlines xs
 
 
 
@@ -162,8 +167,8 @@ peek st = do
   (x,_) <- pop st
   return (x, st)
 
-print :: Stack -> Maybe ([String], Stack)
-print st@(Stack xs) = Just (map decode xs, st)
+printS :: Stack -> Maybe ([String], Stack)
+printS st@(Stack xs) = Just (xs, st)
   
 
 
