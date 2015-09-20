@@ -77,6 +77,9 @@ stackPeek path = do
   x <- strictFileMap path foo "Cannot Peek: Empty Stack!"
   putStrLn $ decode x
 
+stackPrint :: FilePath -> IO ()
+stackPrint path = undefined
+
 
 
 {- IO utilities -}
@@ -109,7 +112,7 @@ showUsageAndQuit = do
     , "  push    Push string arguments to stack"
     , "  pop     Remove top item from stack and print to stdout"
     , "  peek    Print top item from stack to stdout"
-    --, "  print   Print stack to stdout (digest)"
+    , "  print   Print stack to stdout"
     ]
   exitSuccess
 
@@ -159,6 +162,9 @@ peek st = do
   (x,_) <- pop st
   return (x, st)
 
+print :: Stack -> Maybe ([String], Stack)
+print st@(Stack xs) = Just (map decode xs, st)
+  
 
 
 {- string conversions -}

@@ -1,12 +1,12 @@
 # shell.struct
 
-A collection of small programs for manipulating data structures at the command line.
+A collection of small programs for manipulating data structures at the command line. Why? Why not?
 
 ## stack
 
 Manipulate named stacks of strings from the command line.
 
-Basic usage:
+Usage:
 
 * `zstack push "hello"`: push the string "hello" (without quotes) onto the default stack.
 * `zstack push`: push the contents of stdin onto the default stack.
