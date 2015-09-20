@@ -4,6 +4,8 @@ A collection of small programs for manipulating data structures at the command l
 
 ## stack
 
+Manipulate named stacks of strings from the command line.
+
 Basic usage:
 
 * `zstack push "hello"`: push the string "hello" (without quotes) onto the default stack.
@@ -15,3 +17,5 @@ Basic usage:
 * `zstack FOO peek`: etc
 * `zstack show`: write list of named stacks to stdout
 * `zstack help`: print usage
+
+Stack data is stored at $HOME/.shellstruct/stack.
