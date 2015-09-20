@@ -22,11 +22,11 @@ You can play with a default stack...
 * `zstack FOO peek`: etc
 * `zstack FOO print`: etc
 
-stack, push, pop, peek, print, help, and show are not good names for stacks since they will be interpreted as commands. I also recommend sticking to alphanumeric names with hyphens and without spaces, such as `kreb-123`, since the stack name will be used as a filename.
+*stack*, *push*, *pop*, *peek*, *print*, *help*, and *show* are not good names for stacks since they will be interpreted as commands. I also recommend sticking to alphanumeric names with hyphens and without spaces, such as `kreb-123`, since the stack name will be used as a filename.
 
 Other options:
 
 * `zstack show`: write list of all named stacks to stdout
 * `zstack help`: print usage
 
-Stack data is stored at $HOME/.shellstruct/stack.
+Stack data is stored at `$HOME/.shellstruct/stack`. Check it out sometime!
