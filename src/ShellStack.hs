@@ -1,9 +1,9 @@
+{- A basic command line program for manipulating stacks. -}
+{- Author: Nathan Bloomfield                             -}
+
 module Main where
 
 import Data.List (lines, unlines, (\\))
-
-import qualified System.IO.Strict as S
-  ( readFile, getContents )
 import System.IO (hPutStrLn, stderr)
 import System.Exit (exitSuccess, exitFailure)
 import System.Environment (getArgs)
@@ -11,8 +11,9 @@ import System.Directory
   ( getHomeDirectory
   , createDirectoryIfMissing
   , getDirectoryContents
-  , doesFileExist
-  )
+  , doesFileExist )
+import qualified System.IO.Strict as S
+  ( readFile, getContents )
 
 
 
@@ -24,26 +25,61 @@ main = do
   home <- getHomeDirectory
   let dataDir = home ++ "/.shellstruct/stack"
   createDirectoryIfMissing True dataDir
+  let defaultStack = dataDir ++ "/stack"
+  checkFile defaultStack
 
   case args of
-    {- default stack -}
-    ("push":xs) -> stackPush (dataDir ++ "/stack") xs
-    ["pop"]     -> stackPop  (dataDir ++ "/stack")
-    ["peek"]    -> stackPeek (dataDir ++ "/stack")
-
-    {- named stack -}
-    (f:"push":xs) -> stackPush (dataDir ++ "/" ++ f) xs
-    [f,"pop"]     -> stackPop  (dataDir ++ "/" ++ f)
-    [f,"peek"]    -> stackPeek (dataDir ++ "/" ++ f)
-
-    {- otherwise -}
+    {- basics -}
     ["help"] -> showUsageAndQuit
     ["show"] -> printStacksAndQuit dataDir
+
+    {- default stack -}
+    ("push":xs) -> stackPush defaultStack xs
+    ["pop"]     -> stackPop  defaultStack
+    ["peek"]    -> stackPeek defaultStack
+
+    {- named stack -}
+    (name:xs) -> do
+      let namedStack = dataDir ++ "/" ++ name
+      checkFile namedStack
+      case xs of
+        ("push":ys) -> stackPush namedStack ys
+        ["pop"]     -> stackPop  namedStack
+        ["peek"]    -> stackPeek namedStack
+        _           -> showUsageAndQuit
+
+    {- otherwise -}
     _        -> showUsageAndQuit
 
   exitSuccess
 
 
+
+{- IO stack operations -}
+stackPush :: FilePath -> [String] -> IO ()
+stackPush path [] = do
+  x <- S.getContents
+  let foo = fmap (mapSnd writeStack) . push (encode x) . readStack
+  strictFileMap path foo "Cannot Push!"
+stackPush path xs = do
+  let foo = fmap (mapSnd writeStack) . pushAll (map encode xs) . readStack
+  strictFileMap path foo "Cannot Push!"
+
+stackPop :: FilePath -> IO ()
+stackPop path = do
+  let foo = fmap (mapSnd writeStack) . pop . readStack
+  x <- strictFileMap path foo "Cannot Pop: Empty Stack!"
+  putStrLn $ decode x
+
+stackPeek :: FilePath -> IO ()
+stackPeek path = do
+  let foo = fmap (mapSnd writeStack) . peek . readStack
+  x <- strictFileMap path foo "Cannot Peek: Empty Stack!"
+  putStrLn $ decode x
+
+
+
+{- IO utilities -}
 strictFileMap :: FilePath -> (String -> Maybe (a, String)) -> String -> IO a
 strictFileMap path f msg = do
   x <- S.readFile path
@@ -56,56 +92,12 @@ strictFileMap path f msg = do
       hPutStrLn stderr msg
       exitFailure
 
-
 checkFile :: FilePath -> IO ()
 checkFile path = do
   test <- doesFileExist path
   if test
     then return ()
     else writeFile path ""
-
-stackPush :: FilePath -> [String] -> IO ()
-stackPush path [] = do
-  checkFile path
-  s <- S.readFile path
-  x <- S.getContents
-  let stack = push (encode x) (readStack s)
-  writeFile path (writeStack stack)
-  exitSuccess
-stackPush path xs = do
-  checkFile path
-  s <- S.readFile path
-  let stack = pushAll (map encode xs) (readStack s)
-  writeFile path (writeStack stack)
-  exitSuccess
-
-stackPop :: FilePath -> IO ()
-stackPop path = do
-  checkFile path
-  s <- S.readFile path
-  let stack = readStack s
-  case pop stack of
-    Just (x,st) -> do
-      putStrLn $ decode x
-      writeFile path (writeStack st)
-      exitSuccess
-    Nothing -> do
-      hPutStrLn stderr "Empty Stack!"
-      exitFailure
-
-stackPeek :: FilePath -> IO ()
-stackPeek path = do
-  checkFile path
-  s <- readFile path
-  let stack = readStack s
-  case peek stack of
-    Just x -> do
-      putStrLn $ decode x
-      exitSuccess
-    Nothing -> do
-      hPutStrLn stderr "Empty Stack!"
-      exitFailure
-
 
 showUsageAndQuit :: IO ()
 showUsageAndQuit = do
@@ -129,6 +121,12 @@ printStacksAndQuit dir = do
 
 
 
+{- misc utilities -}
+mapSnd :: (b1 -> b2) -> (a,b1) -> (a,b2)
+mapSnd f (x,y) = (x, f y)
+
+
+
 {- stack data -}
 data Stack
   = Stack [String]
@@ -143,21 +141,23 @@ writeStack (Stack xs) = unlines xs
 
 
 {- stack operations -}
-push :: String -> Stack -> Stack
-push x (Stack xs) = Stack (x:xs)
+push :: String -> Stack -> Maybe ((), Stack)
+push x (Stack xs) = Just ((), Stack (x:xs))
 
-pushAll :: [String] -> Stack -> Stack
-pushAll [] st = st
-pushAll (x:xs) st = pushAll xs (push x st)
+pushAll :: [String] -> Stack -> Maybe ((), Stack)
+pushAll [] st = Just ((), st)
+pushAll (x:xs) st = do
+  ((), st') <- push x st
+  pushAll xs st'
 
 pop :: Stack -> Maybe (String, Stack)
 pop (Stack [])     = Nothing
 pop (Stack (x:xs)) = Just (x, Stack xs)
 
-peek :: Stack -> Maybe String
+peek :: Stack -> Maybe (String, Stack)
 peek st = do
   (x,_) <- pop st
-  return x
+  return (x, st)
 
 
 
