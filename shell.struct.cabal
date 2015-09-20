@@ -6,7 +6,7 @@ Author:         Nathan Bloomfield
 Synopsis:       A collection of command line data structures
 Build-Type:     Simple
 
-Executable ss-stack
+Executable zstack
   Main-Is:        ShellStack.hs
   Hs-Source-Dirs: src/
   build-depends:  base, directory, strict
