@@ -1,0 +1,12 @@
+Name:           ShellStruct
+Version:        0.0
+Cabal-Version:  >= 1.2
+License:        AllRightsReserved
+Author:         Nathan Bloomfield
+Synopsis:       A collection of command line data structures
+Build-Type:     Simple
+
+Executable ss-stack
+  Main-Is:        ShellStack.hs
+  Hs-Source-Dirs: src/
+  build-depends:  base, directory, strict
