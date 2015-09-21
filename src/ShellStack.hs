@@ -31,7 +31,7 @@ main = do
   case args of
     {- basics -}
     ["help"] -> showUsage >> exitSuccess
-    ["show"] -> printStacksAndQuit dataDir
+    ["show"] -> printStacks dataDir
 
     {- default stack -}
     ("push":xs) -> stackPush  defaultStack xs
@@ -51,7 +51,7 @@ main = do
         _           -> showUsage >> exitFailure
 
     {- otherwise -}
-    _        -> showUsage >> exitFailure
+    _ -> showUsage >> exitFailure
 
   exitSuccess
 
@@ -124,11 +124,10 @@ showUsage = do
     , "    zstack show                  # write list of stack names to stdout"
     ]
 
-printStacksAndQuit :: FilePath -> IO ()
-printStacksAndQuit dir = do
+printStacks :: FilePath -> IO ()
+printStacks dir = do
   xs <- getDirectoryContents dir
   putStr $ unlines $ (xs \\ [".",".."])
-  exitSuccess
 
 
 
@@ -172,7 +171,7 @@ peek st = do
 
 printS :: Stack -> Maybe ([String], Stack)
 printS st@(Stack xs) = Just (xs, st)
-  
+
 
 
 {- string conversions -}
