@@ -30,7 +30,7 @@ main = do
 
   case args of
     {- basics -}
-    ["help"] -> showUsageAndQuit
+    ["help"] -> showUsage >> exitSuccess
     ["show"] -> printStacksAndQuit dataDir
 
     {- default stack -}
@@ -48,10 +48,10 @@ main = do
         ["pop"]     -> stackPop   namedStack
         ["peek"]    -> stackPeek  namedStack
         ["print"]   -> stackPrint namedStack
-        _           -> showUsageAndQuit
+        _           -> showUsage >> exitFailure
 
     {- otherwise -}
-    _        -> showUsageAndQuit
+    _        -> showUsage >> exitFailure
 
   exitSuccess
 
@@ -107,19 +107,22 @@ checkFile path = do
     then return ()
     else writeFile path ""
 
-showUsageAndQuit :: IO ()
-showUsageAndQuit = do
+showUsage :: IO ()
+showUsage = do
   putStr $ unlines
-    [ "Usage: ss-stack NAME? COMMAND"
-    , "Manipulate named stacks of text at the command line."
-    , "  help    Show usage"
-    , "  show    Print list of stacks to stdout"
-    , "  push    Push string arguments to stack"
-    , "  pop     Remove top item from stack and print to stdout"
-    , "  peek    Print top item from stack to stdout"
-    , "  print   Print stack to stdout"
+    [ "Manipulate stacks of text at the command line."
+    , "Example Usage:"
+    , "  Default Stack"
+    , "    zstack push \"o rly\" ya       # push one or more string args"
+    , "    echo \"lol wut\" | zstack push # push from stdin"
+    , "    zstack peek                  # write top element to stdout"
+    , "    zstack print                 # write stack to stdout"
+    , "    zstack pop                   # write&remove top element"
+    , "  Named Stacks"
+    , "    zstack foo push \"yup mmhmm\"  # etc"
+    , "    zstack foo pop               # etc"
+    , "    zstack show                  # write list of stack names to stdout"
     ]
-  exitSuccess
 
 printStacksAndQuit :: FilePath -> IO ()
 printStacksAndQuit dir = do
